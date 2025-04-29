@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reserva Trem de Piratuba</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1><i class="fas fa-train"></i> Trem de Piratuba</h1>
+    <h2>Reservas Online Seguras</h2>
+  </header>
+
+  <!-- Escolha de Data -->
+  <div class="section" id="dateSection">
+    <h3><i class="far fa-calendar-alt"></i> Escolha a Data</h3>
+    <div id="monthsContainer" class="months-container"></div>
+    <h4 id="labelDias">Dias Disponíveis:</h4>
+    <div id="daysContainer" class="days-container"></div>
+    <h4 id="labelHorario">Horário Disponível:</h4>
+    <div id="hoursContainer" class="hours-container"></div>
+  </div>
+
+  <!-- Passageiros -->
+  <div class="section" id="passengersSection" style="display:none;">
+    <h3><i class="fas fa-users"></i> Passageiros</h3>
+    <div class="passenger-controls">
+  <div class="passenger-type">
+    <span><strong>Adultos acima de 11 anos:</strong> (R$ 159,00)</span>
+    <div class="quantity-control">
+      <button onclick="updatePassengerCount('adultos', -1)"><i class="fas fa-minus"></i></button>
+      <span id="adultosCount">0</span>
+      <button onclick="updatePassengerCount('adultos', 1)"><i class="fas fa-plus"></i></button>
+    </div>
+  </div>
+  <div class="passenger-type">
+    <span><strong>Crianças de 06 a 10 anos:</strong> (R$ 159,00)</span>
+    <div class="quantity-control">
+      <button onclick="updatePassengerCount('criancas', -1)"><i class="fas fa-minus"></i></button>
+      <span id="criancasCount">0</span>
+      <button onclick="updatePassengerCount('criancas', 1)"><i class="fas fa-plus"></i></button>
+    </div>
+  </div>
+  <div class="passenger-type">
+    <span><strong>Bebês de 0 a 5 anos:</strong> (R$ Grátis)(colo)</span>
+    <div class="quantity-control">
+      <button onclick="updatePassengerCount('bebes', -1)"><i class="fas fa-minus"></i></button>
+      <span id="bebesCount">0</span>
+      <button onclick="updatePassengerCount('bebes', 1)"><i class="fas fa-plus"></i></button>
+    </div>
+  </div>
+</div>
+
+    <div id="passengerForms"></div>
+  </div>
+
+  <!-- Pagamento -->
+  <div class="section" id="paymentSection" style="display:none;">
+    <h3><i class="far fa-credit-card"></i> Pagamento</h3>
+    <div id="resumo" class="resumo-container"></div>
+
+    <div class="payment-methods">
+      <button class="payment-btn" id="btnCredit">
+        <i class="far fa-credit-card"></i> Cartão de Crédito 3x Sem Juros
+      </button>
+      <button class="payment-btn" id="btnPix">
+        <i class="fas fa-qrcode"></i> Pix com Desconto
+      </button>
+    </div>
+  </div>
+
+  <!-- Confirmação -->
+  <div class="section" id="confirmationSection" style="display:none;">
+    <div class="confirmation-box">
+      <div class="confirmation-icon">
+        <i class="fas fa-check-circle"></i>
+      </div>
+      <h3>Reserva Confirmada!</h3>
+      <div id="reservationDetails"></div>
+      <button class="btn-print" onclick="window.print()">
+        <i class="fas fa-print"></i> Imprimir
+      </button>
+    </div>
+  </div>
+
+  <footer>
+    <p><i class="fas fa-info-circle"></i> Dúvidas? tremdepiratuba@gmail.com | (47) 9 2002-8553</p>
+  </footer>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
