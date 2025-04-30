@@ -316,45 +316,42 @@ function handlePurchase() {
   };
 
   fetch("https://api.mercadopago.com/checkout/preferences", {
-    method: "POST",
-    headers: {
-      "Authorization": "Bearer APP_USR-3646147308239749-042715-25294f6ef0258492dcdce4d8767b629e-2224895473",
-      "Content-Type": "application/json"
+  method: "POST",
+  headers: {
+    "Authorization": "Bearer APP_USR-3646147308239749-042715-25294f6ef0258492dcdce4d8767b629e-2224895473",
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    items: [{
+      title: "Passeio Trem de Piratuba",
+      quantity: totalPassengers,
+      unit_price: pricePer
+    }],
+    payment_methods: {
+      excluded_payment_types: [
+        { id: "ticket" },
+        { id: "atm" },
+        { id: "bank_transfer" }
+      ],
+      installments: 3
     },
-    body: JSON.stringify(preferenceData)
+    back_urls: {
+      success: `${window.location.origin}/?status=approved`,
+      failure: `${window.location.origin}/?status=failure`,
+      pending: `${window.location.origin}/?status=pending`
+    },
+    auto_return: "approved",
+    notification_url: "https://checkout-tremdepiratuba-mercadopago.vercel.app/api/webhook"
   })
-    .then(res => res.json())
-    .then(data => {
-      sendEmails(total, data.id);
-      window.location.href = data.init_point;
-    })
-    .catch(err => {
-      console.error(err);
-      alert('Erro ao iniciar pagamento. Tente novamente.');
-    });
-}
+})
+.then(data => {
+  window.location.href = data.init_point;
+})
 
-function sendEmails(total, mpCode) {
-  const forms = document.querySelectorAll('.passenger-form');
-  const mainForm = forms[0];
-  const nome = mainForm.querySelector('.input-name')?.value || '';
-  const email = mainForm.querySelector('.input-email')?.value || '';
+.catch(err => {
+  console.error(err);
+  alert('Erro ao iniciar pagamento. Tente novamente.');
+});
 
-  const msgAdmin = Array.from(forms).map((form, i) => {
-    const nome = form.querySelector('.input-name')?.value;
-    const cpf = form.querySelector('.input-cpf')?.value;
-    return `Passageiro ${i + 1}: ${nome}, CPF: ${cpf}`;
-  }).join('\n');
 
-  const templateCliente = {
-    to_name: nome,
-    message: `Sua compra foi confirmada!\nEquipe Trem de Piratuba entrará em contato pelo WhatsApp.\nCódigo Mercado Pago: ${mpCode}`
-  };
-  const templateAdmin = {
-    to_name: "Admin",
-    message: `Compra confirmada.\n${msgAdmin}\nTotal: R$ ${total.toFixed(2)}\nCódigo MP: ${mpCode}`
-  };
-
-  emailjs.send("service_7h0vwgu", "template_f0qdbl2", templateCliente);
-  emailjs.send("service_7h0vwgu", "template_ejloz73", templateAdmin);
 }
