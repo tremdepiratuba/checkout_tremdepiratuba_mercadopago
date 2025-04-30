@@ -200,12 +200,12 @@ function handlePurchase() {
     }],
     payment_methods: {
       excluded_payment_types: [
-        { id: "ticket" },
-        { id: "atm" },
-        { id: "bank_transfer" }
+        { id: "ticket" }, // Exclui boleto
+        { id: "atm" }     // Exclui pagamento em lotérica
+        // { id: "bank_transfer" } — REMOVIDO para permitir o Pix
       ],
       excluded_payment_methods: [
-        { id: "debit_card" }
+        { id: "debit_card" } // Exclui cartão de débito
       ],
       installments: 3
     },
@@ -224,7 +224,7 @@ function handlePurchase() {
     window.location.href = data.init_point;
   } else {
     console.error("Resposta da preferência inválida:", data);
-    alert("Erro ao criar preferência de pagamento.");
+    alert("Erro ao criar a preferência de pagamento.");
   }
 })
 .catch(err => {
