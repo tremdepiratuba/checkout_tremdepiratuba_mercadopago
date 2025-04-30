@@ -105,6 +105,34 @@ function generatePassengerForms() {
     document.getElementById('paymentSection').style.display = 'block';
     generateResumo();
     lockNextPassengers();
+// Configuração do EmailJS  
+emailjs.init(ymeNjOVYZwuX_I2RX);
+
+function enviarEmailTeste() {  
+  const dadosTeste = {  
+    data: "25/05/2024",  
+    adultos: 2,  
+    criancas: 1,  
+    total: "318,00",  
+    codigo_reserva: "TP-TESTE123",  
+    nome: "Fulano de Teste",  
+    cpf: "123.456.789-00",  
+    telefone: "(47) 91234-5678",  
+    email: "cliente@teste.com"  
+  };  
+
+  // Envia e-mail para VOCÊ (admin)  
+  emailjs.send(service_7h0vwgu, template_ejloz73, dadosTeste)  
+    .then(() => console.log("E-mail para VOCÊ enviado!"))  
+    .catch((err) => console.error("Erro no e-mail admin:", err));  
+
+  // Envia e-mail para o CLIENTE (opcional - teste depois)  
+  // emailjs.send(service_7h0vwgu, template_f0qdbl2, dadosTeste)  
+  //   .then(() => console.log("E-mail para CLIENTE enviado!"));  
+}  
+
+// Chame esta função manualmente para testar (pelo console do navegador)  
+enviarEmailTeste();  
   }
 }
 
@@ -284,4 +312,32 @@ function validateCPF(cpf) {
   if (resto === 10 || resto === 11) resto = 0;
   if (resto !== parseInt(cpf.substring(10, 11))) return false;
   return true;
+// ==================== [INÍCIO DO BLOCO] ==================== 
+// TESTE DE ENVIO DE E-MAIL (EMAILJS) - COLE ISSO NO FINAL DO ARQUIVO
+
+// 1. Configuração do EmailJS (substitua SUA_PUBLIC_KEY)
+emailjs.init(ymeNjOVYZwuX_I2RX); // Ex: emailjs.init('user_AbC123xyz');
+
+// 2. Função para testar envio de e-mail
+function enviarEmailTeste() {
+  const dadosTeste = {
+    data: "25/05/2024",
+    adultos: 2,
+    criancas: 1,
+    total: "318,00",
+    codigo_reserva: "TP-TESTE123",
+    nome: "Fulano de Teste",
+    cpf: "123.456.789-00",
+    telefone: "(47) 91234-5678",
+    email: "cliente@teste.com"
+  };
+
+  // 3. Envia e-mail para VOCÊ (admin)
+  emailjs.send(service_7h0vwgu, template_ejloz73, dadosTeste)
+    .then(() => console.log("✅ E-mail para VOCÊ enviado!"))
+    .catch((err) => console.error("❌ Erro:", err));
+}
+
+// ==================== [FIM DO BLOCO] ====================
+
 }
