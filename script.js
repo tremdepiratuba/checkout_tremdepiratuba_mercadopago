@@ -181,112 +181,52 @@ function handlePurchase() {
   if (!checkAllFormsValid()) return alert('Preencha todos os campos corretamente.');
   const paymentMethod = document.querySelector('.payment-btn.selected');
   if (!paymentMethod) return alert('Escolha uma forma de pagamento.');
-  
-  const totalPassengers = passengers.adultos + passengers.criancas + passengers.bebes;
-  const pricePer = 159;
-  const total = (passengers.adultos + passengers.criancas) * pricePer;
-  
-  // Coletando dados do responsável (primeiro adulto)
-  const responsavelForm = document.querySelector('.passenger-form');
-  const responsavelNome = responsavelForm.querySelector('.input-name').value;
-  const responsavelEmail = responsavelForm.querySelector('.input-email').value;
-  const responsavelTelefone = responsavelForm.querySelector('.input-phone').value;
-  
-  // Dados da reserva para metadata
-  const reservationData = {
-    date: `${selectedDay} de ${selectedMonth}`,
-    time: selectedHour,
-    adults: passengers.adultos,
-    children: passengers.criancas,
-    babies: passengers.bebes,
-    total: total,
-    customer: {
-      name: responsavelNome,
-      email: responsavelEmail,
-      phone: responsavelTelefone
-    }
-  };
-  
-  if (paymentMethod.id === 'btnPix') {
-    // Processamento para PIX
-    fetch("https://api.mercadopago.com/checkout/preferences", {
-      method: "POST",
-      headers: {
-        "Authorization": "Bearer APP_USR-3646147308239749-042715-25294f6ef0258492dcdce4d8767b629e-2224895473",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        items: [{
-          title: "Passeio Trem de Piratuba",
-          quantity: totalPassengers,
-          unit_price: pricePer
-        }],
-        payment_methods: {
-          excluded_payment_types: [
-            { id: "ticket" },
-            { id: "atm" },
-            { id: "credit_card" }
-          ]
-        },
-        back_urls: {
-          success: `${window.location.origin}/obrigado.html`,
-          failure: `${window.location.origin}/erro.html`,
-          pending: `${window.location.origin}/aguardando.html`
-        },
-        auto_return: "approved",
-        notification_url: "https://checkout-tremdepiratuba-mercadopago.vercel.app/api/webhook",
-        metadata: reservationData  // Aqui estão os dados da reserva
-      })
-    })
-    .then(response => response.json())
-    .then(preference => {
-      window.location.href = preference.init_point;
-    })
-    .catch(error => {
-      console.error("Erro ao criar preferência:", error);
-      alert("Ocorreu um erro ao processar o pagamento. Por favor, tente novamente.");
-    });
+  const totalPassengers = passengers.adultos + passengers.criancas;
+  if (totalPassengers === 0) return alert('Adicione ao menos um passageiro pagante.');
+  const method = paymentMethod.id === 'btnPix' ? 'pix' : 'card';
+  const pricePer = method === 'pix' ? 146 : 159;
+
+  fetch("https://api.mercadopago.com/checkout/preferences", {
+  method: "POST",
+  headers: {
+    "Authorization": "Bearer APP_USR-3646147308239749-042715-25294f6ef0258492dcdce4d8767b629e-2224895473",
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    items: [{
+      title: "Passeio Trem de Piratuba",
+      quantity: totalPassengers,
+      unit_price: pricePer
+    }],
+    payment_methods: {
+      excluded_payment_types: [
+        { id: "ticket" }, // Exclui boleto
+        { id: "atm" }     // Exclui pagamento em lotérica
+        // { id: "bank_transfer" } — REMOVIDO para permitir o Pix
+      ],
+      excluded_payment_methods: [
+        { id: "debit_card" } // Exclui cartão de débito
+      ],
+      installments: 3
+    },
+    back_urls: {
+  success: `${window.location.origin}/obrigado.html`,
+  failure: `${window.location.origin}/erro.html`,
+  pending: `${window.location.origin}/aguardando.html`
+},
+    auto_return: "approved",
+    notification_url: "https://checkout-tremdepiratuba-mercadopago.vercel.app/api/webhook"
+  })
+})
+.then(res => res.json())
+.then(data => {
+  if (data.init_point) {
+    window.location.href = data.init_point;
   } else {
-    // Processamento para Cartão de Crédito
-    fetch("https://api.mercadopago.com/checkout/preferences", {
-      method: "POST",
-      headers: {
-        "Authorization": "Bearer APP_USR-3646147308239749-042715-25294f6ef0258492dcdce4d8767b629e-2224895473",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        items: [{
-          title: "Passeio Trem de Piratuba",
-          quantity: totalPassengers,
-          unit_price: pricePer
-        }],
-        payment_methods: {
-          excluded_payment_types: [
-            { id: "ticket" },
-            { id: "atm" }
-          ],
-          installments: 3
-        },
-        back_urls: {
-          success: `${window.location.origin}/obrigado.html`,
-          failure: `${window.location.origin}/erro.html`,
-          pending: `${window.location.origin}/aguardando.html`
-        },
-        auto_return: "approved",
-        notification_url: "https://checkout-tremdepiratuba-mercadopago.vercel.app/api/webhook",
-        metadata: reservationData  // Aqui estão os dados da reserva
-      })
-    })
-    .then(response => response.json())
-    .then(preference => {
-      window.location.href = preference.init_point;
-    })
-    .catch(error => {
-      console.error("Erro ao criar preferência:", error);
-      alert("Ocorreu um erro ao processar o pagamento. Por favor, tente novamente.");
-    });
+    console.error("Resposta da preferência inválida:", data);
+    alert("Erro ao criar a preferência de pagamento.");
   }
-}
+})
 .catch(err => {
   console.error("Erro no fetch:", err);
   alert("Erro ao iniciar o pagamento. Tente novamente.");

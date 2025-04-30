@@ -23,105 +23,90 @@ export default async function handler(req, res) {
       console.log("🔎 Detalhes do pagamento:", paymentInfo);
 
       if (paymentInfo.status === 'approved') {
-        console.log("🎉 Pagamento aprovado! Processando reserva...");
-
         // Extrai dados da reserva do metadata
         const metadata = paymentInfo.metadata || {};
-        const reservationData = {
-          date: metadata.date || 'Data não informada',
-          time: metadata.time || 'Horário não informado',
-          adults: metadata.adults || 0,
-          children: metadata.children || 0,
-          babies: metadata.babies || 0,
-          total: metadata.total || 0,
-          customer: {
-            name: metadata.customer?.name || 'Cliente',
-            email: metadata.customer?.email || '',
-            phone: metadata.customer?.phone || 'Não informado'
-          }
+        const reserva = {
+          nome: metadata.nome || 'Cliente',
+          email: metadata.email || 'sem-email@exemplo.com',
+          telefone: metadata.telefone || 'Não informado',
+          data: metadata.data || 'Não informada',
+          horario: metadata.horario || 'Não informado',
+          adultos: metadata.adultos || 0,
+          criancas: metadata.criancas || 0,
+          bebes: metadata.bebes || 0,
+          valor: paymentInfo.transaction_amount || 0
+        };
+        
+        console.log("✅ Pagamento aprovado! Dados da reserva:", reserva);
+
+        // Preparando templates de email
+        const templateParamsCliente = {
+          to_name: reserva.nome,
+          to_email: reserva.email,
+          data_viagem: reserva.data,
+          horario: reserva.horario,
+          adultos: reserva.adultos,
+          criancas: reserva.criancas,
+          bebes: reserva.bebes,
+          valor: `R$ ${reserva.valor.toFixed(2)}`,
+          payment_id: paymentId
         };
 
-        console.log("📦 Dados da reserva:", reservationData);
-
-        // Template para o CLIENTE
-        const clientEmailParams = {
-          service_id: process.env.EMAILJS_SERVICE_ID,
-          template_id: process.env.EMAILJS_TEMPLATE_CLIENTE,
-          user_id: process.env.EMAILJS_USER_ID,
-          accessToken: process.env.EMAILJS_ACCESS_TOKEN,
-          template_params: {
-            to_name: reservationData.customer.name,
-            to_email: reservationData.customer.email,
-            adultos: reservationData.adults,
-            crianças: reservationData.children,
-            total: reservationData.total.toFixed(2),
-            codigo_reserva: paymentId,
-            data: reservationData.date,
-            horario: reservationData.time,
-            telefone: reservationData.customer.phone
-          }
+        const templateParamsAdmin = {
+          ...templateParamsCliente,
+          to_name: 'Administrador',
+          to_email: process.env.ADMIN_EMAIL,
+          cliente_nome: reserva.nome,
+          cliente_email: reserva.email,
+          cliente_telefone: reserva.telefone
         };
 
-        // Template para o ADMIN (você)
-        const adminEmailParams = {
-          service_id: process.env.EMAILJS_SERVICE_ID,
-          template_id: process.env.EMAILJS_TEMPLATE_ADMIN,
-          user_id: process.env.EMAILJS_USER_ID,
-          accessToken: process.env.EMAILJS_ACCESS_TOKEN,
-          template_params: {
-            to_name: "Admin",
-            to_email: process.env.ADMIN_EMAIL,
-            cliente_nome: reservationData.customer.name,
-            cliente_email: reservationData.customer.email,
-            cliente_telefone: reservationData.customer.phone,
-            adultos: reservationData.adults,
-            crianças: reservationData.children,
-            bebes: reservationData.babies,
-            total: reservationData.total.toFixed(2),
-            data: reservationData.date,
-            horario: reservationData.time,
-            codigo_reserva: paymentId
-          }
-        };
-
-        // Envia e-mail para o CLIENTE
+        // Envia email para o cliente
         try {
-          console.log("📤 Enviando e-mail para o cliente...");
-          const clientEmailRes = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(clientEmailParams)
+          await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              service_id: process.env.EMAILJS_SERVICE_ID,
+              template_id: process.env.EMAILJS_TEMPLATE_CLIENTE,
+              user_id: process.env.EMAILJS_USER_ID,
+              accessToken: process.env.EMAILJS_ACCESS_TOKEN,
+              template_params: templateParamsCliente
+            })
           });
-
-          if (!clientEmailRes.ok) throw new Error(await clientEmailRes.text());
-          console.log("✅ E-mail enviado ao cliente com sucesso!");
-        } catch (err) {
-          console.error("❌ Falha ao enviar e-mail ao cliente:", err);
+          console.log("📧 Email enviado para o cliente:", reserva.email);
+        } catch (emailError) {
+          console.error("❌ Erro ao enviar email para cliente:", emailError);
         }
 
-        // Envia e-mail para o ADMIN
+        // Envia email para o admin
         try {
-          console.log("📤 Enviando e-mail para o admin...");
-          const adminEmailRes = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(adminEmailParams)
+          await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              service_id: process.env.EMAILJS_SERVICE_ID,
+              template_id: process.env.EMAILJS_TEMPLATE_ADMIN,
+              user_id: process.env.EMAILJS_USER_ID,
+              accessToken: process.env.EMAILJS_ACCESS_TOKEN,
+              template_params: templateParamsAdmin
+            })
           });
-
-          if (!adminEmailRes.ok) throw new Error(await adminEmailRes.text());
-          console.log("✅ E-mail enviado ao admin com sucesso!");
-        } catch (err) {
-          console.error("❌ Falha ao enviar e-mail ao admin:", err);
+          console.log("📧 Email enviado para o admin:", process.env.ADMIN_EMAIL);
+        } catch (emailError) {
+          console.error("❌ Erro ao enviar email para admin:", emailError);
         }
-
       } else {
-        console.log("⏳ Pagamento ainda não aprovado. Status:", paymentInfo.status);
+        console.log("⚠️ Pagamento não aprovado. Status:", paymentInfo.status);
       }
-    } catch (err) {
-      console.error("❌ Erro ao processar webhook:", err);
-      return res.status(500).json({ error: "Erro interno no servidor" });
+    } catch (error) {
+      console.error("❌ Erro ao processar pagamento:", error);
     }
   }
 
-  res.status(200).json({ status: 'ok' });
+  return res.status(200).json({ success: true });
 }
