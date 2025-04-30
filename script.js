@@ -1,11 +1,16 @@
 const mp = new MercadoPago('APP_USR-502f9ce6-3a4e-40dd-88a4-b1ebe10de60e');
 emailjs.init('ymeNjOVYZwuX_I2RX');
 
-const months = ["Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+const monthsList = ["Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 const availableDates = {
   "Maio": [3, 10, 17, 24, 31],
   "Junho": [7, 14, 20, 21, 28],
-  "Julho": [2, 5, 9, 12, 16, 19, 23, 26, 30]
+  "Julho": [2, 5, 9, 12, 16, 19, 23, 26, 30],
+  "Agosto": [2, 6, 9, 13, 16, 20, 23, 27, 30],
+  "Setembro": [3, 6, 10, 13, 17, 20, 24, 27],
+  "Outubro": [1, 4, 8, 11, 15, 18, 22, 25, 29],
+  "Novembro": [1, 5, 8, 12, 15, 19, 22, 26, 29],
+  "Dezembro": [3, 6, 10, 13, 17, 20, 24, 27, 31]
 };
 const fixedHour = "13:30";
 let selectedMonth = "", selectedDay = "", selectedHour = "";
@@ -19,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function createMonthButtons() {
   const container = document.getElementById('monthsContainer');
-  months.forEach(month => {
+  monthsList.forEach(month => {
     const btn = document.createElement('button');
     btn.className = 'month-button';
     btn.textContent = month;
@@ -29,25 +34,49 @@ function createMonthButtons() {
 }
 
 function selectMonth(button, month) {
-  selectedMonth = month;
+  selectedMonth = month.trim();
   selectedDay = "";
   document.querySelectorAll('.month-button').forEach(btn => btn.classList.remove('selected'));
   button.classList.add('selected');
-  renderDays(month);
-}
 
+  // Confirma no console qual valor está sendo passado
+  console.log("🔍 Mês selecionado:", selectedMonth);
+  renderDays(selectedMonth);
+}
+}
 function renderDays(month) {
   const container = document.getElementById('daysContainer');
   container.innerHTML = '';
-  availableDates[month].forEach(day => {
-    const el = document.createElement('div');
-    el.className = 'day';
-    el.textContent = day;
-    el.onclick = () => selectDay(el, day);
-    container.appendChild(el);
+  const now = new Date();
+  const year = now.getFullYear();
+
+  const dias = availableDates[month];
+  if (!dias) {
+    console.error(`🚨 Mês "${month}" não encontrado em availableDates. Verifique ortografia, acento e letras maiúsculas.`);
+    return;
+  }
+
+  dias.forEach(day => {
+    const dia = String(day).padStart(2, '0');
+    const dataPasseio = new Date(`${year}-${padMonth(month)}-${dia}T13:30:00`);
+    const diff = dataPasseio.getTime() - now.getTime();
+
+    if (diff > 3 * 60 * 60 * 1000) {
+      const el = document.createElement('div');
+      el.className = 'day';
+      el.textContent = day;
+      el.onclick = () => selectDay(el, day);
+      container.appendChild(el);
+    }
   });
 }
 
+
+
+function padMonth(monthName) {
+  const index = monthsList.indexOf(monthName);
+  return String(index + 5).padStart(2, '0');
+}
 function selectDay(button, day) {
   selectedDay = day;
   document.querySelectorAll('.day').forEach(btn => btn.classList.remove('selected'));
@@ -69,6 +98,7 @@ function showHours() {
   };
   container.appendChild(el);
 }
+
 function updatePassengerCount(type, delta) {
   passengers[type] = Math.max(0, passengers[type] + delta);
   document.getElementById(`${type}Count`).textContent = passengers[type];
