@@ -187,45 +187,49 @@ function handlePurchase() {
   const pricePer = method === 'pix' ? 146 : 159;
 
   fetch("https://api.mercadopago.com/checkout/preferences", {
-    method: "POST",
-    headers: {
-      "Authorization": "Bearer APP_USR-3646147308239749-042715-25294f6ef0258492dcdce4d8767b629e-2224895473",
-      "Content-Type": "application/json"
+  method: "POST",
+  headers: {
+    "Authorization": "Bearer APP_USR-3646147308239749-042715-25294f6ef0258492dcdce4d8767b629e-2224895473",
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    items: [{
+      title: "Passeio Trem de Piratuba",
+      quantity: totalPassengers,
+      unit_price: pricePer
+    }],
+    payment_methods: {
+      excluded_payment_types: [
+        { id: "ticket" },
+        { id: "atm" },
+        { id: "bank_transfer" }
+      ],
+      excluded_payment_methods: [
+        { id: "debit_card" }
+      ],
+      installments: 3
     },
-    body: JSON.stringify({
-      items: [{
-        title: "Passeio Trem de Piratuba",
-        quantity: totalPassengers,
-        unit_price: pricePer
-      }],
-      payment_methods: {
-        excluded_payment_types: [
-          { id: "ticket" },
-          { id: "atm" },
-          { id: "bank_transfer" }
-        ],
-        installments: 3
-      },
-      back_urls: {
-        success: `${window.location.origin}/?status=approved`,
-        failure: `${window.location.origin}/?status=failure`,
-        pending: `${window.location.origin}/?status=pending`
-      },
-      auto_return: "approved",
-      notification_url: "https://checkout-tremdepiratuba-mercadopago.vercel.app/api/webhook"
-    })
+    back_urls: {
+      success: `${window.location.origin}/?status=approved`,
+      failure: `${window.location.origin}/?status=failure`,
+      pending: `${window.location.origin}/?status=pending`
+    },
+    auto_return: "approved",
+    notification_url: "https://checkout-tremdepiratuba-mercadopago.vercel.app/api/webhook"
   })
-  .then(res => res.json())
-  .then(data => {
-    if (data.init_point) {
-      window.location.href = data.init_point;
-    } else {
-      console.error("Resposta da preferência inválida:", data);
-      alert("Erro ao criar preferência de pagamento. Verifique as credenciais.");
-    }
-  })
-  .catch(err => {
-    console.error("Erro na requisição:", err);
-    alert('Erro ao iniciar pagamento. Tente novamente.');
-  });
+})
+.then(res => res.json())
+.then(data => {
+  if (data.init_point) {
+    window.location.href = data.init_point;
+  } else {
+    console.error("Resposta da preferência inválida:", data);
+    alert("Erro ao criar preferência de pagamento.");
+  }
+})
+.catch(err => {
+  console.error("Erro no fetch:", err);
+  alert("Erro ao iniciar o pagamento. Tente novamente.");
+});
+
 }
