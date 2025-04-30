@@ -312,32 +312,41 @@ function validateCPF(cpf) {
   if (resto === 10 || resto === 11) resto = 0;
   if (resto !== parseInt(cpf.substring(10, 11))) return false;
   return true;
-// ==================== [INÍCIO DO BLOCO] ==================== 
-// TESTE DE ENVIO DE E-MAIL (EMAILJS) - COLE ISSO NO FINAL DO ARQUIVO
+// ================== CONFIGURAÇÃO EMAILJS ================== //
+emailjs.init('ymeNjOVYZwuX_I2RX'); // Sua Public Key
 
-// 1. Configuração do EmailJS (substitua SUA_PUBLIC_KEY)
-emailjs.init(ymeNjOVYZwuX_I2RX); // Ex: emailjs.init('user_AbC123xyz');
-
-// 2. Função para testar envio de e-mail
-function enviarEmailTeste() {
-  const dadosTeste = {
-    data: "25/05/2024",
-    adultos: 2,
-    criancas: 1,
-    total: "318,00",
-    codigo_reserva: "TP-TESTE123",
-    nome: "Fulano de Teste",
-    cpf: "123.456.789-00",
-    telefone: "(47) 91234-5678",
-    email: "cliente@teste.com"
+function enviarEmailsReserva() {
+  // Dados do responsável (primeiro passageiro)
+  const formResponsavel = document.querySelector('.passenger-form');
+  const responsavel = {
+    nome: formResponsavel.querySelector('.input-name').value,
+    cpf: formResponsavel.querySelector('.input-cpf').value,
+    telefone: formResponsavel.querySelector('.input-phone').value,
+    email: formResponsavel.querySelector('.input-email').value
   };
 
-  // 3. Envia e-mail para VOCÊ (admin)
-  emailjs.send(service_7h0vwgu, template_ejloz73, dadosTeste)
-    .then(() => console.log("✅ E-mail para VOCÊ enviado!"))
-    .catch((err) => console.error("❌ Erro:", err));
+  // Dados da reserva
+  const dadosReserva = {
+    data: `${selectedDay}/${selectedMonth}`,
+    adultos: passengers.adultos,
+    criancas: passengers.criancas,
+    total: (passengers.adultos * 159 + passengers.criancas * 159).toFixed(2),
+    ...responsavel // Inclui todos os dados do responsável
+  };
+
+  // 1. Envia e-mail para o CLIENTE
+  emailjs.send('service_7h0vwgu', 'template_f0qdbl2', dadosReserva)
+    .then(() => console.log("E-mail para cliente enviado!"));
+
+  // 2. Envia e-mail para VOCÊ (ADMIN)
+  emailjs.send('service_7h0vwgu', 'template_ejloz73', {
+    ...dadosReserva,
+    // Adiciona campos extras para o admin (se necessário)
+    detalhes: `Reserva para ${dadosReserva.adultos} adultos e ${dadosReserva.criancas} crianças`
+  })
+  .then(() => console.log("E-mail para admin enviado!"));
 }
 
-// ==================== [FIM DO BLOCO] ====================
+// ========================================================== //
 
 }
