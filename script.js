@@ -164,7 +164,7 @@ function generateResumo() {
     <p><strong>Adultos:</strong> ${passengers.adultos} x R$159,00</p>
     <p><strong>Crianças:</strong> ${passengers.criancas} x R$159,00</p>
     <p><strong>Bebês:</strong> ${passengers.bebes} (Grátis)</p>
-    <p><strong>Total:</strong> R$ ${total.toFixed(2)}</p>
+    <p><strong>Total:</strong> R$ ${(passengers.adultos + passengers.criancas) * 159},00</p>
   `;
 }
 function setupPaymentButtons() {
@@ -181,55 +181,63 @@ function handlePurchase() {
   if (!checkAllFormsValid()) return alert('Preencha todos os campos corretamente.');
   const paymentMethod = document.querySelector('.payment-btn.selected');
   if (!paymentMethod) return alert('Escolha uma forma de pagamento.');
+
+  const responsavelForm = document.querySelector('.passenger-form');
+  const responsavelNome = responsavelForm.querySelector('.input-name')?.value.trim() || '';
+  const responsavelEmail = responsavelForm.querySelector('.input-email')?.value.trim() || '';
+  const responsavelTelefone = responsavelForm.querySelector('.input-phone')?.value.trim() || '';
+
   const totalPassengers = passengers.adultos + passengers.criancas;
-  if (totalPassengers === 0) return alert('Adicione ao menos um passageiro pagante.');
   const method = paymentMethod.id === 'btnPix' ? 'pix' : 'card';
   const pricePer = method === 'pix' ? 146 : 159;
 
   fetch("https://api.mercadopago.com/checkout/preferences", {
-  method: "POST",
-  headers: {
-    "Authorization": "Bearer APP_USR-3646147308239749-042715-25294f6ef0258492dcdce4d8767b629e-2224895473",
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    items: [{
-      title: "Passeio Trem de Piratuba",
-      quantity: totalPassengers,
-      unit_price: pricePer
-    }],
-    payment_methods: {
-      excluded_payment_types: [
-        { id: "ticket" }, // Exclui boleto
-        { id: "atm" }     // Exclui pagamento em lotérica
-        // { id: "bank_transfer" } — REMOVIDO para permitir o Pix
-      ],
-      excluded_payment_methods: [
-        { id: "debit_card" } // Exclui cartão de débito
-      ],
-      installments: 3
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer APP_USR-3646147308239749-042715-25294f6ef0258492dcdce4d8767b629e-2224895473",
+      "Content-Type": "application/json"
     },
-    back_urls: {
-  success: `${window.location.origin}/obrigado.html`,
-  failure: `${window.location.origin}/erro.html`,
-  pending: `${window.location.origin}/aguardando.html`
-},
-    auto_return: "approved",
-    notification_url: "https://checkout-tremdepiratuba-mercadopago.vercel.app/api/webhook"
+    body: JSON.stringify({
+      items: [{
+        title: "Passeio Trem de Piratuba",
+        quantity: totalPassengers,
+        unit_price: pricePer
+      }],
+      payment_methods: {
+        excluded_payment_types: [{ id: "ticket" }, { id: "atm" }],
+        excluded_payment_methods: [{ id: "debit_card" }],
+        installments: 3
+      },
+      back_urls: {
+        success: `${window.location.origin}/obrigado.html`,
+        failure: `${window.location.origin}/erro.html`,
+        pending: `${window.location.origin}/aguardando.html`
+      },
+      auto_return: "approved",
+      notification_url: "https://checkout-tremdepiratuba-mercadopago.vercel.app/api/webhook",
+      metadata: {
+        nome: responsavelNome,
+        email: responsavelEmail,
+        telefone: responsavelTelefone,
+        data: `${selectedDay} de ${selectedMonth}`,
+        horario: selectedHour,
+        adultos: passengers.adultos,
+        criancas: passengers.criancas,
+        bebes: passengers.bebes
+      }
+    })
   })
-})
-.then(res => res.json())
-.then(data => {
-  if (data.init_point) {
-    window.location.href = data.init_point;
-  } else {
-    console.error("Resposta da preferência inválida:", data);
-    alert("Erro ao criar a preferência de pagamento.");
-  }
-})
-.catch(err => {
-  console.error("Erro no fetch:", err);
-  alert("Erro ao iniciar o pagamento. Tente novamente.");
-});
-
+  .then(res => res.json())
+  .then(data => {
+    if (data.init_point) {
+      window.location.href = data.init_point;
+    } else {
+      console.error("Resposta da preferência inválida:", data);
+      alert("Erro ao criar a preferência de pagamento.");
+    }
+  })
+  .catch(err => {
+    console.error("Erro no fetch:", err);
+    alert("Erro ao iniciar o pagamento. Tente novamente.");
+  });
 }
