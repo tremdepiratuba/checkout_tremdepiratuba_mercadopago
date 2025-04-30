@@ -5,7 +5,12 @@ const months = ["Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Nove
 const availableDates = {
   "Maio": [3, 10, 17, 24, 31],
   "Junho": [7, 14, 20, 21, 28],
-  "Julho": [2, 5, 9, 12, 16, 19, 23, 26, 30]
+  "Julho": [2, 5, 9, 12, 16, 19, 23, 26, 30],
+  "Agosto": [2, 06, 09, 13, 16, 20, 23, 27, 30],
+  "Setembro": [3, 06, 10, 13, 17, 20, 24, 27],
+  "Outubro": [1, 4, 8, 11, 15, 18, 22, 25, 29],
+  "Novembro": [1, 5, 8, 12, 15, 19, 22, 26, 29],
+  "Dezembro": [3, 6, 10, 13, 17, 20, 24, 27, 31]
 };
 const fixedHour = "13:30";
 let selectedMonth = "", selectedDay = "", selectedHour = "";
