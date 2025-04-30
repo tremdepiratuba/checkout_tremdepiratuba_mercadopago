@@ -210,10 +210,10 @@ function handlePurchase() {
       installments: 3
     },
     back_urls: {
-      success: `${window.location.origin}/?status=approved`,
-      failure: `${window.location.origin}/?status=failure`,
-      pending: `${window.location.origin}/?status=pending`
-    },
+  success: `${window.location.origin}/obrigado.html`,
+  failure: `${window.location.origin}/erro.html`,
+  pending: `${window.location.origin}/aguardando.html`
+},
     auto_return: "approved",
     notification_url: "https://checkout-tremdepiratuba-mercadopago.vercel.app/api/webhook"
   })
