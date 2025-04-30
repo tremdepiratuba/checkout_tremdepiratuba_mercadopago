@@ -1,95 +1,76 @@
+const mp = new MercadoPago('APP_USR-502f9ce6-3a4e-40dd-88a4-b1ebe10de60e');
+emailjs.init('ymeNjOVYZwuX_I2RX');
+
 const months = ["Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 const availableDates = {
   "Maio": [3, 10, 17, 24, 31],
   "Junho": [7, 14, 20, 21, 28],
-  "Julho": [2, 5, 9, 12, 16, 19, 23, 26, 30],
-  "Agosto": [2, 6, 9, 13, 16, 20, 23, 27, 30],
-  "Setembro": [3, 6, 10, 13, 17, 20, 24, 27],
-  "Outubro": [1, 4, 8, 11, 15, 18, 22, 25, 29],
-  "Novembro": [1, 5, 8, 12, 15, 19, 22, 26, 29],
-  "Dezembro": [3, 6, 10, 13, 17, 20, 24, 27, 31]
+  "Julho": [2, 5, 9, 12, 16, 19, 23, 26, 30]
 };
-
 const fixedHour = "13:30";
-let selectedMonth = "";
-let selectedDay = "";
-let selectedHour = "";
+let selectedMonth = "", selectedDay = "", selectedHour = "";
 let passengers = { adultos: 0, criancas: 0, bebes: 0 };
 
 document.addEventListener('DOMContentLoaded', () => {
   createMonthButtons();
+  setupPaymentButtons();
+  document.getElementById('btnConfirm').addEventListener('click', handlePurchase);
 });
 
 function createMonthButtons() {
   const container = document.getElementById('monthsContainer');
-  container.innerHTML = '';
   months.forEach(month => {
-    const button = document.createElement('button');
-    button.className = 'month-button';
-    button.textContent = month;
-    button.onclick = () => selectMonth(button, month);
-    container.appendChild(button);
+    const btn = document.createElement('button');
+    btn.className = 'month-button';
+    btn.textContent = month;
+    btn.onclick = () => selectMonth(btn, month);
+    container.appendChild(btn);
   });
-}
-
-function resetReservation() {
-  passengers = { adultos: 0, criancas: 0, bebes: 0 };
-  document.getElementById('adultosCount').textContent = '0';
-  document.getElementById('criancasCount').textContent = '0';
-  document.getElementById('bebesCount').textContent = '0';
-  document.getElementById('passengerForms').innerHTML = '';
-  document.getElementById('paymentSection').style.display = 'none';
-  document.getElementById('confirmationSection').style.display = 'none';
 }
 
 function selectMonth(button, month) {
-  resetReservation();
   selectedMonth = month;
+  selectedDay = "";
   document.querySelectorAll('.month-button').forEach(btn => btn.classList.remove('selected'));
   button.classList.add('selected');
-  showDays(month);
+  renderDays(month);
 }
 
-function showDays(month) {
+function renderDays(month) {
   const container = document.getElementById('daysContainer');
   container.innerHTML = '';
   availableDates[month].forEach(day => {
-    const dayElement = document.createElement('div');
-    dayElement.className = 'day';
-    dayElement.textContent = day;
-    dayElement.onclick = () => selectDay(dayElement, day);
-    container.appendChild(dayElement);
+    const el = document.createElement('div');
+    el.className = 'day';
+    el.textContent = day;
+    el.onclick = () => selectDay(el, day);
+    container.appendChild(el);
   });
 }
 
-function selectDay(element, day) {
-  resetReservation();
+function selectDay(button, day) {
   selectedDay = day;
-  document.querySelectorAll('.day').forEach(d => d.classList.remove('selected'));
-  element.classList.add('selected');
+  document.querySelectorAll('.day').forEach(btn => btn.classList.remove('selected'));
+  button.classList.add('selected');
   showHours();
 }
 
 function showHours() {
-  resetReservation();
   const container = document.getElementById('hoursContainer');
   container.innerHTML = '';
-  const hourElement = document.createElement('div');
-  hourElement.className = 'hour';
-  hourElement.textContent = fixedHour;
-  hourElement.onclick = () => selectHour(hourElement);
-  container.appendChild(hourElement);
+  const el = document.createElement('div');
+  el.className = 'hour';
+  el.textContent = fixedHour;
+  el.onclick = () => {
+    selectedHour = fixedHour;
+    document.querySelectorAll('.hour').forEach(h => h.classList.remove('selected'));
+    el.classList.add('selected');
+    document.getElementById('passengersSection').style.display = 'block';
+  };
+  container.appendChild(el);
 }
-
-function selectHour(element) {
-  selectedHour = fixedHour;
-  document.querySelectorAll('.hour').forEach(h => h.classList.remove('selected'));
-  element.classList.add('selected');
-  document.getElementById('passengersSection').style.display = 'block';
-}
-
-function updatePassengerCount(type, change) {
-  passengers[type] = Math.max(0, passengers[type] + change);
+function updatePassengerCount(type, delta) {
+  passengers[type] = Math.max(0, passengers[type] + delta);
   document.getElementById(`${type}Count`).textContent = passengers[type];
   generatePassengerForms();
 }
@@ -104,42 +85,14 @@ function generatePassengerForms() {
   if (idx > 1) {
     document.getElementById('paymentSection').style.display = 'block';
     generateResumo();
-    lockNextPassengers();
-// Configuração do EmailJS  
-emailjs.init(ymeNjOVYZwuX_I2RX);
-
-function enviarEmailTeste() {  
-  const dadosTeste = {  
-    data: "25/05/2024",  
-    adultos: 2,  
-    criancas: 1,  
-    total: "318,00",  
-    codigo_reserva: "TP-TESTE123",  
-    nome: "Fulano de Teste",  
-    cpf: "123.456.789-00",  
-    telefone: "(47) 91234-5678",  
-    email: "cliente@teste.com"  
-  };  
-
-  // Envia e-mail para VOCÊ (admin)  
-  emailjs.send(service_7h0vwgu, template_ejloz73, dadosTeste)  
-    .then(() => console.log("E-mail para VOCÊ enviado!"))  
-    .catch((err) => console.error("Erro no e-mail admin:", err));  
-
-  // Envia e-mail para o CLIENTE (opcional - teste depois)  
-  // emailjs.send(service_7h0vwgu, template_f0qdbl2, dadosTeste)  
-  //   .then(() => console.log("E-mail para CLIENTE enviado!"));  
-}  
-
-// Chame esta função manualmente para testar (pelo console do navegador)  
-enviarEmailTeste();  
+  } else {
+    document.getElementById('paymentSection').style.display = 'none';
   }
 }
 
 function addPassengerForm(container, tipo, idx, isResponsavel = false) {
   const div = document.createElement('div');
   div.className = 'passenger-form';
-  div.setAttribute('data-index', idx);
   div.innerHTML = `
     <h4>${tipo} ${idx}</h4>
     <input type="text" placeholder="Nome Completo" class="input-name" required>
@@ -147,148 +100,13 @@ function addPassengerForm(container, tipo, idx, isResponsavel = false) {
     ${isResponsavel ? `
     <input type="text" placeholder="Telefone" class="input-phone" required>
     <input type="email" placeholder="E-mail" class="input-email" required>` : ''}
-    <div class="error-message" style="color: red; font-weight: bold; font-size: 14px; margin-top: 5px;"></div>
   `;
   container.appendChild(div);
-
-  const inputs = div.querySelectorAll('input');
-  inputs.forEach(input => {
-    input.addEventListener('input', () => validatePassengerSequence(div));
-  });
-  
-  // Adicionar validação para aceitar apenas números no campo CPF
-  const cpfInput = div.querySelector('.input-cpf');
-  cpfInput.addEventListener('keypress', function(e) {
-    if (!/\d/.test(e.key)) {
-      e.preventDefault();
-    }
-  });
-  
-  // Limpar caracteres não numéricos caso sejam colados
-  cpfInput.addEventListener('paste', function(e) {
-    setTimeout(() => {
-      this.value = this.value.replace(/\D/g, '');
-      validatePassengerSequence(div);
-    }, 0);
-  });
-}
-
-function lockNextPassengers() {
-  const forms = document.querySelectorAll('.passenger-form');
-  forms.forEach((form, index) => {
-    if (index > 0) {
-      const inputs = form.querySelectorAll('input');
-      inputs.forEach(input => input.disabled = true);
-    }
-  });
-}
-
-function unlockPassenger(form) {
-  const inputs = form.querySelectorAll('input');
-  inputs.forEach(input => input.disabled = false);
-}
-
-function validatePassengerSequence(form) {
-  const index = parseInt(form.getAttribute('data-index')) - 1;
-  const allForms = document.querySelectorAll('.passenger-form');
-  const currentForm = allForms[index];
-
-  if (validatePassengerForm(currentForm)) {
-    if (allForms[index + 1]) {
-      unlockPassenger(allForms[index + 1]);
-    }
-    unblockConfirm();
-  } else {
-    for (let i = index + 1; i < allForms.length; i++) {
-      const inputs = allForms[i].querySelectorAll('input');
-      inputs.forEach(input => input.disabled = true);
-    }
-    blockConfirm();
-  }
-}
-
-function validatePassengerForm(form) {
-  let valid = true;
-  const nameInput = form.querySelector('.input-name');
-  const cpfInput = form.querySelector('.input-cpf');
-  const phoneInput = form.querySelector('.input-phone');
-  const emailInput = form.querySelector('.input-email');
-  const errorDiv = form.querySelector('.error-message');
-  errorDiv.innerText = '';
-
-  // Validação do Nome
-  if (!nameInput.value.trim()) {
-    showError(nameInput, errorDiv, 'Campo obrigatório!');
-    valid = false;
-  } else {
-    clearError(nameInput, errorDiv);
-  }
-
-  // Validação do CPF
-  if (!cpfInput.value.trim()) {
-    showError(cpfInput, errorDiv, 'Campo obrigatório!');
-    valid = false;
-  } else {
-    const cpfValido = validateCPF(cpfInput.value);
-    if (!cpfValido) {
-      showError(cpfInput, errorDiv, 'CPF inválido! Verifique os números digitados.');
-      valid = false;
-    } else {
-      clearError(cpfInput, errorDiv);
-    }
-  }
-
-  // Validações do telefone e e-mail (se existirem)
-  if (phoneInput && !phoneInput.value.trim()) {
-    showError(phoneInput, errorDiv, 'Campo obrigatório!');
-    valid = false;
-  } else if (phoneInput) {
-    clearError(phoneInput, errorDiv);
-  }
-
-  if (emailInput && !emailInput.value.trim()) {
-    showError(emailInput, errorDiv, 'Campo obrigatório!');
-    valid = false;
-  } else if (emailInput) {
-    clearError(emailInput, errorDiv);
-  }
-
-  return valid;
-}
-
-function showError(input, errorDiv, message) {
-  input.style.border = '2px solid red';
-  errorDiv.innerText = message;
-}
-
-function clearError(input, errorDiv) {
-  input.style.border = '';
-  // Não limpar a mensagem de erro aqui, pois pode haver outros erros
-}
-
-function blockConfirm() {
-  document.getElementById('btnConfirm').disabled = true;
-}
-
-function unblockConfirm() {
-  if (validateAllPassengers()) {
-    document.getElementById('btnConfirm').disabled = false;
-  }
-}
-
-function validateAllPassengers() {
-  let valid = true;
-  const forms = document.querySelectorAll('.passenger-form');
-  forms.forEach(form => {
-    if (!validatePassengerForm(form)) valid = false;
-  });
-  return valid;
 }
 
 function generateResumo() {
-  const resumo = document.getElementById('resumo');
-  const total = (passengers.adultos * 159) + (passengers.criancas * 159);
-  resumo.innerHTML = `
+  const total = (passengers.adultos + passengers.criancas) * 159;
+  document.getElementById('resumo').innerHTML = `
     <h3>Resumo da Reserva</h3>
     <p><strong>Data:</strong> ${selectedDay} de ${selectedMonth} às ${fixedHour}</p>
     <p><strong>Adultos:</strong> ${passengers.adultos} x R$159,00</p>
@@ -297,56 +115,87 @@ function generateResumo() {
     <p><strong>Total:</strong> R$ ${total.toFixed(2)}</p>
   `;
 }
-
-function validateCPF(cpf) {
-  cpf = cpf.replace(/[^\d]+/g,'');
-  if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
-  let soma = 0, resto;
-  for (let i = 1; i <= 9; i++) soma += parseInt(cpf.substring(i-1, i)) * (11 - i);
-  resto = (soma * 10) % 11;
-  if (resto === 10 || resto === 11) resto = 0;
-  if (resto !== parseInt(cpf.substring(9, 10))) return false;
-  soma = 0;
-  for (let i = 1; i <= 10; i++) soma += parseInt(cpf.substring(i-1, i)) * (12 - i);
-  resto = (soma * 10) % 11;
-  if (resto === 10 || resto === 11) resto = 0;
-  if (resto !== parseInt(cpf.substring(10, 11))) return false;
-  return true;
-// ================== CONFIGURAÇÃO EMAILJS ================== //
-emailjs.init('ymeNjOVYZwuX_I2RX'); // Sua Public Key
-
-function enviarEmailsReserva() {
-  // Dados do responsável (primeiro passageiro)
-  const formResponsavel = document.querySelector('.passenger-form');
-  const responsavel = {
-    nome: formResponsavel.querySelector('.input-name').value,
-    cpf: formResponsavel.querySelector('.input-cpf').value,
-    telefone: formResponsavel.querySelector('.input-phone').value,
-    email: formResponsavel.querySelector('.input-email').value
-  };
-
-  // Dados da reserva
-  const dadosReserva = {
-    data: `${selectedDay}/${selectedMonth}`,
-    adultos: passengers.adultos,
-    criancas: passengers.criancas,
-    total: (passengers.adultos * 159 + passengers.criancas * 159).toFixed(2),
-    ...responsavel // Inclui todos os dados do responsável
-  };
-
-  // 1. Envia e-mail para o CLIENTE
-  emailjs.send('service_7h0vwgu', 'template_f0qdbl2', dadosReserva)
-    .then(() => console.log("E-mail para cliente enviado!"));
-
-  // 2. Envia e-mail para VOCÊ (ADMIN)
-  emailjs.send('service_7h0vwgu', 'template_ejloz73', {
-    ...dadosReserva,
-    // Adiciona campos extras para o admin (se necessário)
-    detalhes: `Reserva para ${dadosReserva.adultos} adultos e ${dadosReserva.criancas} crianças`
-  })
-  .then(() => console.log("E-mail para admin enviado!"));
+function setupPaymentButtons() {
+  document.getElementById('btnCredit').addEventListener('click', () => {
+    togglePayment('btnCredit');
+  });
+  document.getElementById('btnPix').addEventListener('click', () => {
+    togglePayment('btnPix');
+  });
 }
 
-// ========================================================== //
+function togglePayment(selectedId) {
+  document.getElementById('btnCredit').classList.remove('selected');
+  document.getElementById('btnPix').classList.remove('selected');
+  document.getElementById(selectedId).classList.add('selected');
+  generateResumo();
+}
 
+function handlePurchase() {
+  const paymentMethod = document.querySelector('.payment-btn.selected');
+  if (!paymentMethod) return alert('Escolha uma forma de pagamento.');
+
+  const method = paymentMethod.id === 'btnPix' ? 'pix' : 'card';
+  const pricePer = method === 'pix' ? 146 : 159;
+  const totalPassengers = passengers.adultos + passengers.criancas;
+  if (totalPassengers === 0) return alert('Adicione ao menos um passageiro pagante.');
+
+  const total = totalPassengers * pricePer;
+
+  const preferenceData = {
+    items: [{
+      title: "Passeio Trem de Piratuba",
+      quantity: totalPassengers,
+      unit_price: pricePer
+    }],
+    back_urls: {
+      success: window.location.href,
+      failure: window.location.href,
+      pending: window.location.href
+    },
+    auto_return: "approved"
+  };
+
+  fetch("https://api.mercadopago.com/checkout/preferences", {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer APP_USR-3646147308239749-042715-25294f6ef0258492dcdce4d8767b629e-2224895473",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(preferenceData)
+  })
+    .then(res => res.json())
+    .then(data => {
+      sendEmails(total, data.id);
+      window.location.href = data.init_point;
+    })
+    .catch(err => {
+      console.error(err);
+      alert('Erro ao iniciar pagamento. Tente novamente.');
+    });
+}
+
+function sendEmails(total, mpCode) {
+  const forms = document.querySelectorAll('.passenger-form');
+  const mainForm = forms[0];
+  const nome = mainForm.querySelector('.input-name')?.value || '';
+  const email = mainForm.querySelector('.input-email')?.value || '';
+
+  const msgAdmin = Array.from(forms).map((form, i) => {
+    const nome = form.querySelector('.input-name')?.value;
+    const cpf = form.querySelector('.input-cpf')?.value;
+    return `Passageiro ${i + 1}: ${nome}, CPF: ${cpf}`;
+  }).join('\n');
+
+  const templateCliente = {
+    to_name: nome,
+    message: `Sua compra foi confirmada!\nEquipe Trem de Piratuba entrará em contato pelo WhatsApp.\nCódigo Mercado Pago: ${mpCode}`
+  };
+  const templateAdmin = {
+    to_name: "Admin",
+    message: `Compra confirmada.\n${msgAdmin}\nTotal: R$ ${total.toFixed(2)}\nCódigo MP: ${mpCode}`
+  };
+
+  emailjs.send("service_7h0vwgu", "template_f0qdbl2", templateCliente);
+  emailjs.send("service_7h0vwgu", "template_ejloz73", templateAdmin);
 }

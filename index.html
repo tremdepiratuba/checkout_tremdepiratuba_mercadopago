@@ -29,35 +29,34 @@
   <div class="section" id="passengersSection" style="display:none;">
     <h3><i class="fas fa-users"></i> Passageiros</h3>
     <div class="passenger-controls">
-  <div class="passenger-type">
-    <span><strong>Adultos acima de 11 anos:</strong> (R$ 159,00)</span>
-    <div class="quantity-control">
-      <button onclick="updatePassengerCount('adultos', -1)"><i class="fas fa-minus"></i></button>
-      <span id="adultosCount">0</span>
-      <button onclick="updatePassengerCount('adultos', 1)"><i class="fas fa-plus"></i></button>
+      <div class="passenger-type">
+        <span><strong>Adultos acima de 11 anos:</strong> (R$ 159,00)</span>
+        <div class="quantity-control">
+          <button onclick="updatePassengerCount('adultos', -1)"><i class="fas fa-minus"></i></button>
+          <span id="adultosCount">0</span>
+          <button onclick="updatePassengerCount('adultos', 1)"><i class="fas fa-plus"></i></button>
+        </div>
+      </div>
+      <div class="passenger-type">
+        <span><strong>Crianças de 06 a 10 anos:</strong> (R$ 159,00)</span>
+        <div class="quantity-control">
+          <button onclick="updatePassengerCount('criancas', -1)"><i class="fas fa-minus"></i></button>
+          <span id="criancasCount">0</span>
+          <button onclick="updatePassengerCount('criancas', 1)"><i class="fas fa-plus"></i></button>
+        </div>
+      </div>
+      <div class="passenger-type">
+        <span><strong>Bebês de 0 a 5 anos:</strong> (R$ Grátis)(colo)</span>
+        <div class="quantity-control">
+          <button onclick="updatePassengerCount('bebes', -1)"><i class="fas fa-minus"></i></button>
+          <span id="bebesCount">0</span>
+          <button onclick="updatePassengerCount('bebes', 1)"><i class="fas fa-plus"></i></button>
+        </div>
+      </div>
     </div>
-  </div>
-  <div class="passenger-type">
-    <span><strong>Crianças de 06 a 10 anos:</strong> (R$ 159,00)</span>
-    <div class="quantity-control">
-      <button onclick="updatePassengerCount('criancas', -1)"><i class="fas fa-minus"></i></button>
-      <span id="criancasCount">0</span>
-      <button onclick="updatePassengerCount('criancas', 1)"><i class="fas fa-plus"></i></button>
-    </div>
-  </div>
-  <div class="passenger-type">
-    <span><strong>Bebês de 0 a 5 anos:</strong> (R$ Grátis)(colo)</span>
-    <div class="quantity-control">
-      <button onclick="updatePassengerCount('bebes', -1)"><i class="fas fa-minus"></i></button>
-      <span id="bebesCount">0</span>
-      <button onclick="updatePassengerCount('bebes', 1)"><i class="fas fa-plus"></i></button>
-    </div>
-  </div>
-</div>
 
     <div id="passengerForms"></div>
   </div>
-
   <!-- Pagamento -->
   <div class="section" id="paymentSection" style="display:none;">
     <h3><i class="far fa-credit-card"></i> Pagamento</h3>
@@ -70,6 +69,10 @@
       <button class="payment-btn" id="btnPix">
         <i class="fas fa-qrcode"></i> Pix com Desconto
       </button>
+    </div>
+
+    <div class="navigation-buttons">
+      <button class="btn-confirm" id="btnConfirm">Confirmar Compra</button>
     </div>
   </div>
 
@@ -92,13 +95,11 @@
   </footer>
 </div>
 
+<!-- SDK Mercado Pago -->
+<script src="https://sdk.mercadopago.com/js/v2"></script>
+<!-- EmailJS -->
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@2/dist/email.min.js"></script>
+<!-- Script principal -->
 <script src="script.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>  
-<script>  
-  emailjs.init('SUA_PUBLIC_KEY'); ymeNjOVYZwuX_I2RX  
-</script> 
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-<script src="script.js"></script>
-</body> 
 </body>
 </html>
